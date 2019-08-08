@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2019 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.builder.xml;
 
@@ -144,7 +144,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       for (String clazz : clazzes) {
         if (!clazz.isEmpty()) {
           @SuppressWarnings("unchecked")
-          Class<? extends VFS> vfsImpl = (Class<? extends VFS>)Resources.classForName(clazz);
+          Class<? extends VFS> vfsImpl = (Class<? extends VFS>) Resources.classForName(clazz);
           configuration.setVfsImpl(vfsImpl);
         }
       }
@@ -268,20 +268,30 @@ public class XMLConfigBuilder extends BaseBuilder {
     configuration.setConfigurationFactory(resolveClass(props.getProperty("configurationFactory")));
   }
 
+  /**
+   * 环境元素解析，解析environments下的所有标签信息,只封装environment的default标注的环境，换句话说default指定要用的某个环境
+   *
+   * @param context environments节点
+   * @throws Exception 异常
+   */
   private void environmentsElement(XNode context) throws Exception {
     if (context != null) {
       if (environment == null) {
         environment = context.getStringAttribute("default");
       }
+      //具体的environment信息
       for (XNode child : context.getChildren()) {
+        //环境的编号，用来标识环境
         String id = child.getStringAttribute("id");
         if (isSpecifiedEnvironment(id)) {
           TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
           DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
           DataSource dataSource = dsFactory.getDataSource();
+          //创建环境构造器，每个环境对应一个唯一的id，环境里包含了数据源和事务的所有信息
           Environment.Builder environmentBuilder = new Environment.Builder(id)
-              .transactionFactory(txFactory)
-              .dataSource(dataSource);
+            .transactionFactory(txFactory)
+            .dataSource(dataSource);
+          //将构造的环境放入configuration里，每个config对象对应一个环境
           configuration.setEnvironment(environmentBuilder.build());
         }
       }
@@ -307,6 +317,13 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 解析事务标签及其下的属性并封装成transactionFactory对象，目前JdbcTransactionFactory里只有简单的事务实现，大多数情况下会交给spring transaction处理
+   *
+   * @param context 事务标签信息
+   * @return 封装好的事务对象
+   * @throws Exception 必须要有一个事务
+   */
   private TransactionFactory transactionManagerElement(XNode context) throws Exception {
     if (context != null) {
       String type = context.getStringAttribute("type");
@@ -318,6 +335,14 @@ public class XMLConfigBuilder extends BaseBuilder {
     throw new BuilderException("Environment declaration requires a TransactionFactory.");
   }
 
+  /**
+   * 解析DataSource标签及其下的属性并封装成DataSourceFactory对象，一个factory对象对应一个DataSource，
+   * DataSource里有数据库连接的相关信息，例如：driver，url，username,password
+   *
+   * @param context 包含DataSource信息的标签
+   * @return 返回封装的factory对象
+   * @throws Exception 构建异常，必须要有一个数据库连接
+   */
   private DataSourceFactory dataSourceElement(XNode context) throws Exception {
     if (context != null) {
       String type = context.getStringAttribute("type");
@@ -356,7 +381,14 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * mapper文件的解析
+   *
+   * @param parent mappers节点
+   * @throws Exception 异常
+   */
   private void mapperElement(XNode parent) throws Exception {
+    //TODO 先标注一下，这里是mapper文件的解析，看完配置文件的解析再看这里
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
         if ("package".equals(child.getName())) {

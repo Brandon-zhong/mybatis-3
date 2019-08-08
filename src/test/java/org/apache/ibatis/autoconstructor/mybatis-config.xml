@@ -30,9 +30,10 @@
                 <property name="" value=""/>
             </transactionManager>
             <dataSource type="UNPOOLED">
-                <property name="driver" value="org.hsqldb.jdbcDriver"/>
-                <property name="url" value="jdbc:hsqldb:mem:automapping"/>
-                <property name="username" value="sa"/>
+                <property name="driver" value="com.mysql.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://47.106.158.38:3406/local?characterEncoding=utf8&amp;autoReconnect=true"/>
+                <property name="username" value="root"/>
+                <property name="password" value="abc123"/>
             </dataSource>
         </environment>
     </environments>
