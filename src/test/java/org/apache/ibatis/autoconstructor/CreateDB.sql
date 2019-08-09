@@ -51,6 +51,6 @@ INSERT INTO subject VALUES
 
 INSERT INTO extensive_subject
 VALUES
-  (1, 1, 'a', 1, 1, 1, 1.0, 1, 'a', 'AVALUE', 'ACLOB', 'aaaaaabbbbbb', CURRENT_TIMESTAMP),
-  (2, 2, 'b', 2, 2, 2, 2.0, 2, 'b', 'BVALUE', 'BCLOB', '010101010101', CURRENT_TIMESTAMP),
-  (3, 3, 'c', 3, 3, 3, 3.0, 3, 'c', 'CVALUE', 'CCLOB', '777d010078da', CURRENT_TIMESTAMP);
+  (1, 1, 'a', 1, 1, 1, 1.0, true, 'a', 'AVALUE', 'ACLOB', 'aaaaaabbbbbb', CURRENT_TIMESTAMP),
+  (2, 2, 'b', 2, 2, 2, 2.0, false, 'b', 'BVALUE', 'BCLOB', '010101010101', CURRENT_TIMESTAMP),
+  (3, 3, 'c', 3, 3, 3, 3.0, true, 'c', 'CVALUE', 'CCLOB', '777d010078da', CURRENT_TIMESTAMP);

@@ -101,6 +101,8 @@ public class SqlSessionFactoryBuilder {
 
   /**
    * 只是单纯的生成一个defaultSqlSessionFactory对象，将config赋值操作
+   *
+   * @param config 配置文件的封装对象，里面有所有的配置信息
    */
   public SqlSessionFactory build(Configuration config) {
     return new DefaultSqlSessionFactory(config);
