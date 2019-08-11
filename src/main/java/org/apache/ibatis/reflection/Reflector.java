@@ -90,6 +90,7 @@ public class Reflector {
 
   private void addGetMethods(Class<?> cls) {
     Map<String, List<Method>> conflictingGetters = new HashMap<>();
+    //获取类下的所有方法，包括继承的父类和实现的接口方法（这些方法通过方法签名(包含返回类型的方法签名)过滤了）
     Method[] methods = getClassMethods(cls);
     for (Method method : methods) {
       //滤除有参get方法
@@ -100,14 +101,23 @@ public class Reflector {
       String name = method.getName();
       if ((name.startsWith("get") && name.length() > 3)
         || (name.startsWith("is") && name.length() > 2)) {
-        //滤除is、get、set，获取成员变量名
+        //滤除is、get、set字段，获取字段后面的成员变量名(首字母大写变小写)
         name = PropertyNamer.methodToProperty(name);
         addMethodConflict(conflictingGetters, name, method);
       }
     }
+    //conflictGetters里有返回参数不同，但是方法签名相同的方法，这里的解决冲突指的就是这类方法
+    //大多数是父类和实现的接口中有方法签名相同，但是返回类型不同的方法，例如 Integer getAge(),Object getAge()
     resolveGetterConflicts(conflictingGetters);
   }
 
+  /**
+   * 解决冲突的get方法，冲突的get方法是指，父类和实现的接口中有返回类型不同但是方法签名相同的方法
+   * 例如，父类中有Integer getAge()方法，接口中有 T getAge()方法，则实现类中这两个方法属于冲突的get方法
+   * 通过调用此方法来解决这类冲突
+   *
+   * @param conflictingGetters key为字段名，例如age，value为age字段的所有get方法，例如{Integer getAge(), T getAge()}
+   */
   private void resolveGetterConflicts(Map<String, List<Method>> conflictingGetters) {
     for (Entry<String, List<Method>> entry : conflictingGetters.entrySet()) {
       Method winner = null;
@@ -120,6 +130,7 @@ public class Reflector {
         Class<?> winnerType = winner.getReturnType();
         Class<?> candidateType = candidate.getReturnType();
         if (candidateType.equals(winnerType)) {
+          //如果方法类型相同，但是返回类型不是boolean类型，则报非法重写getter方法
           if (!boolean.class.equals(candidateType)) {
             throw new ReflectionException(
               "Illegal overloaded getter method with ambiguous type for property "
@@ -326,12 +337,12 @@ public class Reflector {
   private void addUniqueMethods(Map<String, Method> uniqueMethods, Method[] methods) {
     for (Method currentMethod : methods) {
       if (!currentMethod.isBridge()) {
-        //生成方法签名
+        //生成方法签名，这个方法签名是包含返回参数的
         String signature = getSignature(currentMethod);
         // check to see if the method is already known
         // if it is known, then an extended class must have
         // overridden a method
-        //滤除重写和实现过的接口方法
+        //滤除重写和实现过的接口方法(方法签名相同的方法)
         if (!uniqueMethods.containsKey(signature)) {
           uniqueMethods.put(signature, currentMethod);
         }
