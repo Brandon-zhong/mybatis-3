@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2019 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.reflection.factory;
 
@@ -26,6 +26,7 @@ import java.util.Properties;
 public interface ObjectFactory {
 
   /**
+   *  默认空实现
    * Sets configuration properties.
    * @param properties configuration properties
    */
@@ -34,6 +35,7 @@ public interface ObjectFactory {
   }
 
   /**
+   * 使用默认构造器创建指定类的对象
    * Creates a new object with default constructor.
    * @param type Object type
    * @return
@@ -41,6 +43,7 @@ public interface ObjectFactory {
   <T> T create(Class<T> type);
 
   /**
+   * 使用特定的构造方法和参数，创建指定类的对象
    * Creates a new object with the specified constructor and params.
    * @param type Object type
    * @param constructorArgTypes Constructor argument types
@@ -50,6 +53,7 @@ public interface ObjectFactory {
   <T> T create(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs);
 
   /**
+   * 判断指定类是否为集合类
    * Returns true if this object can have a set of other objects.
    * It's main purpose is to support non-java.util.Collection objects like Scala collections.
    *

@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2019 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.reflection.factory;
 
@@ -48,19 +48,22 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
   @SuppressWarnings("unchecked")
   @Override
   public <T> T create(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
+    //将接口类型转换为接口的子类型
     Class<?> classToCreate = resolveInterface(type);
     // we know types are assignable
     return (T) instantiateClass(classToCreate, constructorArgTypes, constructorArgs);
   }
 
-  private  <T> T instantiateClass(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
+  private <T> T instantiateClass(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
     try {
       Constructor<T> constructor;
+      //如果构造函数的参数或参数列表为空，则使用无参 构造函数
       if (constructorArgTypes == null || constructorArgs == null) {
         constructor = type.getDeclaredConstructor();
         try {
           return constructor.newInstance();
         } catch (IllegalAccessException e) {
+          //如果为私有构造，则强制使用私有构造函数
           if (Reflector.canControlMemberAccessible()) {
             constructor.setAccessible(true);
             return constructor.newInstance();
@@ -69,10 +72,13 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
           }
         }
       }
+      //获取指定参数列表的构造函数
       constructor = type.getDeclaredConstructor(constructorArgTypes.toArray(new Class[constructorArgTypes.size()]));
       try {
+        //构造对象
         return constructor.newInstance(constructorArgs.toArray(new Object[constructorArgs.size()]));
       } catch (IllegalAccessException e) {
+        //如果为私有构造，则强制使用私有构造函数
         if (Reflector.canControlMemberAccessible()) {
           constructor.setAccessible(true);
           return constructor.newInstance(constructorArgs.toArray(new Object[constructorArgs.size()]));
@@ -82,13 +88,16 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
       }
     } catch (Exception e) {
       String argTypes = Optional.ofNullable(constructorArgTypes).orElseGet(Collections::emptyList)
-          .stream().map(Class::getSimpleName).collect(Collectors.joining(","));
+        .stream().map(Class::getSimpleName).collect(Collectors.joining(","));
       String argValues = Optional.ofNullable(constructorArgs).orElseGet(Collections::emptyList)
-          .stream().map(String::valueOf).collect(Collectors.joining(","));
+        .stream().map(String::valueOf).collect(Collectors.joining(","));
       throw new ReflectionException("Error instantiating " + type + " with invalid types (" + argTypes + ") or values (" + argValues + "). Cause: " + e, e);
     }
   }
 
+  /**
+   * 解析类型接口，如果传入的类为接口类型，则选一个该接口的实现类返回
+   */
   protected Class<?> resolveInterface(Class<?> type) {
     Class<?> classToCreate;
     if (type == List.class || type == Collection.class || type == Iterable.class) {

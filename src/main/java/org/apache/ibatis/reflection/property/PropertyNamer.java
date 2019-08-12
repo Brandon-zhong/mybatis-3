@@ -30,6 +30,7 @@ public final class PropertyNamer {
 
   /**
    * 将方法名字去掉is、get、set，得到成员变量名
+   *
    * @param name is、get、set方法名
    */
   public static String methodToProperty(String name) {
@@ -48,14 +49,23 @@ public final class PropertyNamer {
     return name;
   }
 
+  /**
+   * 判断是否为get或set、is方法
+   */
   public static boolean isProperty(String name) {
     return name.startsWith("get") || name.startsWith("set") || name.startsWith("is");
   }
 
+  /**
+   * 判断是否为get方法，is方法属于get方法
+   */
   public static boolean isGetter(String name) {
     return name.startsWith("get") || name.startsWith("is");
   }
 
+  /**
+   * 判断是否为set方法
+   */
   public static boolean isSetter(String name) {
     return name.startsWith("set");
   }
