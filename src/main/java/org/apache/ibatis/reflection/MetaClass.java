@@ -64,6 +64,7 @@ public class MetaClass {
   }
 
   public String findProperty(String name, boolean useCamelCaseMapping) {
+    //如果useCamelCaseMapping为true则将name里的所有_替换掉
     if (useCamelCaseMapping) {
       name = name.replace("_", "");
     }
@@ -174,11 +175,18 @@ public class MetaClass {
     }
   }
 
+  /**
+   * 判断当前类是否有指定字段名的get方法，name可能是一个表达式如：richType.richList[0]
+   */
   public boolean hasGetter(String name) {
+    //给name分词
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
+      //判断当前类是有分词name 的get方法
       if (reflector.hasGetter(prop.getName())) {
+        //获取该字段类型的MetaClass对象
         MetaClass metaProp = metaClassForProperty(prop);
+        //递归调用子串在该MetaClass对象是否有get方法
         return metaProp.hasGetter(prop.getChildren());
       } else {
         return false;

@@ -28,6 +28,7 @@ public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
 
   /**
    * 解析调用 ，例如：order[0].item[0].name
+   *
    * @param fullname
    */
   public PropertyTokenizer(String fullname) {
@@ -47,7 +48,7 @@ public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
     //解析name的[]坐标
     delim = name.indexOf('[');
     if (delim > -1) {
-      //获取[]的坐标index
+      //获取[]里的坐标index
       index = name.substring(delim + 1, name.length() - 1);
       //解析[前的name
       name = name.substring(0, delim);

@@ -36,6 +36,20 @@ public class RichType {
     }
   };
 
+  private List<RichType> richTypeList = new ArrayList<RichType>() {
+    {
+      add(new RichType());
+    }
+  };
+
+  public List<RichType> getRichTypeList() {
+    return richTypeList;
+  }
+
+  public void setRichTypeList(List<RichType> richTypeList) {
+    this.richTypeList = richTypeList;
+  }
+
   public RichType getRichType() {
     return richType;
   }
