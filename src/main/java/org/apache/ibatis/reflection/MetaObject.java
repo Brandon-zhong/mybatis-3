@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2019 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.reflection;
 
@@ -29,13 +29,29 @@ import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
 
 /**
  * @author Clinton Begin
+ * 对象元数据类
  */
 public class MetaObject {
 
+  /**
+   * 原始对象
+   */
   private final Object originalObject;
+  /**
+   * 对象包装类
+   */
   private final ObjectWrapper objectWrapper;
+  /**
+   * 对象工厂
+   */
   private final ObjectFactory objectFactory;
+  /**
+   * 对象包装类工厂
+   */
   private final ObjectWrapperFactory objectWrapperFactory;
+  /**
+   * 反射工厂
+   */
   private final ReflectorFactory reflectorFactory;
 
   private MetaObject(Object object, ObjectFactory objectFactory, ObjectWrapperFactory objectWrapperFactory, ReflectorFactory reflectorFactory) {
@@ -45,12 +61,16 @@ public class MetaObject {
     this.reflectorFactory = reflectorFactory;
 
     if (object instanceof ObjectWrapper) {
+      //普通包装对象
       this.objectWrapper = (ObjectWrapper) object;
     } else if (objectWrapperFactory.hasWrapperFor(object)) {
+      //object为普通对象，且有包装对象，则获取包装对象
       this.objectWrapper = objectWrapperFactory.getWrapperFor(this, object);
     } else if (object instanceof Map) {
+      //构建map包装对象
       this.objectWrapper = new MapWrapper(this, (Map) object);
     } else if (object instanceof Collection) {
+      //构建集合包装对象
       this.objectWrapper = new CollectionWrapper(this, (Collection) object);
     } else {
       this.objectWrapper = new BeanWrapper(this, object);
@@ -109,13 +129,19 @@ public class MetaObject {
     return objectWrapper.hasGetter(name);
   }
 
+  /**
+   * 获取指定属性的值
+   */
   public Object getValue(String name) {
+    //解析表达式
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
+      //子表达式
       MetaObject metaValue = metaObjectForProperty(prop.getIndexedName());
       if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
         return null;
       } else {
+        //继续查询子表达式
         return metaValue.getValue(prop.getChildren());
       }
     } else {
@@ -123,7 +149,11 @@ public class MetaObject {
     }
   }
 
+  /**
+   * 设置指定属性的指定值
+   */
   public void setValue(String name, Object value) {
+    //解析表达式
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
       MetaObject metaValue = metaObjectForProperty(prop.getIndexedName());
@@ -142,7 +172,9 @@ public class MetaObject {
   }
 
   public MetaObject metaObjectForProperty(String name) {
+    //获取值
     Object value = getValue(name);
+    //封装元数据对象
     return MetaObject.forObject(value, objectFactory, objectWrapperFactory, reflectorFactory);
   }
 

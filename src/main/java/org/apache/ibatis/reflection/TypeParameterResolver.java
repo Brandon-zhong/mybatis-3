@@ -27,6 +27,7 @@ import java.util.Arrays;
 
 /**
  * @author Iwao AVE!
+ * type参数解析
  */
 public class TypeParameterResolver {
 

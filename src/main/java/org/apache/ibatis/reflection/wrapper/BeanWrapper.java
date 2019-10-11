@@ -46,6 +46,12 @@ public class BeanWrapper extends BaseWrapper {
     this.metaClass = MetaClass.forClass(object.getClass(), metaObject.getReflectorFactory());
   }
 
+  /**
+   * 获取表达式的所值属性的值
+   *
+   * @param prop 表达式，例如：list[0]
+   * @return 表达式的值
+   */
   @Override
   public Object get(PropertyTokenizer prop) {
     if (prop.getIndex() != null) {
@@ -56,6 +62,12 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  /**
+   * gei 给表达式设置值
+   *
+   * @param prop  表达式，例如：list[0]
+   * @param value 要设置的值
+   */
   @Override
   public void set(PropertyTokenizer prop, Object value) {
     if (prop.getIndex() != null) {
@@ -81,6 +93,9 @@ public class BeanWrapper extends BaseWrapper {
     return metaClass.getSetterNames();
   }
 
+  /**
+   * 获取字段的set参数类型，支持表达式获取
+   */
   @Override
   public Class<?> getSetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
@@ -96,14 +111,20 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  /**
+   * 获取字段get返回值类型，支持获取表达式末端属于类型
+   */
   @Override
   public Class<?> getGetterType(String name) {
+    //对name进行分词
     PropertyTokenizer prop = new PropertyTokenizer(name);
+    //判断是否有子表达式
     if (prop.hasNext()) {
       MetaObject metaValue = metaObject.metaObjectForProperty(prop.getIndexedName());
       if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
         return metaClass.getGetterType(name);
       } else {
+        //递归调用处理子表达式
         return metaValue.getGetterType(prop.getChildren());
       }
     } else {
@@ -111,9 +132,14 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  /**
+   * 判断是否有指定属性的get方法
+   */
   @Override
   public boolean hasSetter(String name) {
+    //分词
     PropertyTokenizer prop = new PropertyTokenizer(name);
+    //是否有子表达式
     if (prop.hasNext()) {
       if (metaClass.hasSetter(prop.getIndexedName())) {
         MetaObject metaValue = metaObject.metaObjectForProperty(prop.getIndexedName());
@@ -149,13 +175,20 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  /**
+   * 实例化字段对象，并返回该字段对应的
+   */
   @Override
   public MetaObject instantiatePropertyValue(String name, PropertyTokenizer prop, ObjectFactory objectFactory) {
     MetaObject metaValue;
+    //获取字段set参数类型
     Class<?> type = getSetterType(prop.getName());
     try {
+      //创建参数对象
       Object newObject = objectFactory.create(type);
+      //创建参数对象的metaObject
       metaValue = MetaObject.forObject(newObject, metaObject.getObjectFactory(), metaObject.getObjectWrapperFactory(), metaObject.getReflectorFactory());
+      //设置表达式和参数对象
       set(prop, newObject);
     } catch (Exception e) {
       throw new ReflectionException("Cannot set value of property '" + name + "' because '" + name + "' is null and cannot be instantiated on instance of " + type.getName() + ". Cause:" + e.toString(), e);
