@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2018 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2018 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.datasource.pooled;
 
@@ -19,13 +19,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 连接池的状态， 用了synchronized来保证多线程下，this数据源的线程安全
  * @author Clinton Begin
  */
 public class PoolState {
 
+  //池化的数据源
   protected PooledDataSource dataSource;
 
+  //心跳连接
   protected final List<PooledConnection> idleConnections = new ArrayList<>();
+  //活跃连接
   protected final List<PooledConnection> activeConnections = new ArrayList<>();
   protected long requestCount = 0;
   protected long accumulatedRequestTime = 0;

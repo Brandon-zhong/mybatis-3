@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2019 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.datasource.unpooled;
 
@@ -40,6 +40,7 @@ public class UnpooledDataSource implements DataSource {
 
   private ClassLoader driverClassLoader;
   private Properties driverProperties;
+  //和类绑定的驱动注册，持有一份完整的DriverManager的所有驱动信息
   private static Map<String, Driver> registeredDrivers = new ConcurrentHashMap<>();
 
   private String driver;
@@ -193,9 +194,8 @@ public class UnpooledDataSource implements DataSource {
 
   /**
    * Sets the default network timeout value to wait for the database operation to complete. See {@link Connection#setNetworkTimeout(java.util.concurrent.Executor, int)}
-   * 
-   * @param defaultNetworkTimeout
-   *          The time in milliseconds to wait for the database operation to complete.
+   *
+   * @param defaultNetworkTimeout The time in milliseconds to wait for the database operation to complete.
    * @since 3.5.2
    */
   public void setDefaultNetworkTimeout(Integer defaultNetworkTimeout) {
@@ -217,12 +217,20 @@ public class UnpooledDataSource implements DataSource {
   }
 
   private Connection doGetConnection(Properties properties) throws SQLException {
+    //初始化驱动信息
     initializeDriver();
+    //建立和数据库的连接，properties中有所有的驱动信息和当前数据源的username和password
     Connection connection = DriverManager.getConnection(url, properties);
+    //配置建立好的连接，例如设置网络超时时长以及自动提交等
     configureConnection(connection);
     return connection;
   }
 
+  /**
+   * 初始化驱动，如果当前数据源的驱动没有注册，则寻找相应的驱动类并注册
+   *
+   * @throws SQLException
+   */
   private synchronized void initializeDriver() throws SQLException {
     if (!registeredDrivers.containsKey(driver)) {
       Class<?> driverType;
@@ -234,7 +242,7 @@ public class UnpooledDataSource implements DataSource {
         }
         // DriverManager requires the driver to be loaded via the system ClassLoader.
         // http://www.kfu.com/~nsayer/Java/dyn-jdbc.html
-        Driver driverInstance = (Driver)driverType.newInstance();
+        Driver driverInstance = (Driver) driverType.newInstance();
         DriverManager.registerDriver(new DriverProxy(driverInstance));
         registeredDrivers.put(driver, driverInstance);
       } catch (Exception e) {
@@ -243,6 +251,11 @@ public class UnpooledDataSource implements DataSource {
     }
   }
 
+  /**
+   * 设置连接的配置信息
+   *
+   * @param conn 当前建立的连接
+   */
   private void configureConnection(Connection conn) throws SQLException {
     if (defaultNetworkTimeout != null) {
       conn.setNetworkTimeout(Executors.newSingleThreadExecutor(), defaultNetworkTimeout);
@@ -255,6 +268,7 @@ public class UnpooledDataSource implements DataSource {
     }
   }
 
+  //mybatis的一个驱动代理类
   private static class DriverProxy implements Driver {
     private Driver driver;
 

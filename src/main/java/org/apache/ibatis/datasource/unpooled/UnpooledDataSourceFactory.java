@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2015 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2015 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.datasource.unpooled;
 
@@ -25,6 +25,8 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.SystemMetaObject;
 
 /**
+ * 没有池化的数据源工厂
+ *
  * @author Clinton Begin
  */
 public class UnpooledDataSourceFactory implements DataSourceFactory {
@@ -38,6 +40,11 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
     this.dataSource = new UnpooledDataSource();
   }
 
+  /**
+   * 设置属性值
+   *
+   * @param properties
+   */
   @Override
   public void setProperties(Properties properties) {
     Properties driverProperties = new Properties();
@@ -45,9 +52,11 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
     for (Object key : properties.keySet()) {
       String propertyName = (String) key;
       if (propertyName.startsWith(DRIVER_PROPERTY_PREFIX)) {
+        //如果属性值为驱动，则将驱动注册
         String value = properties.getProperty(propertyName);
         driverProperties.setProperty(propertyName.substring(DRIVER_PROPERTY_PREFIX_LENGTH), value);
       } else if (metaDataSource.hasSetter(propertyName)) {
+        //通过反射包里的工具类对数据源进行各种属性的设置，如url、username、password
         String value = (String) properties.get(propertyName);
         Object convertedValue = convertValue(metaDataSource, propertyName, value);
         metaDataSource.setValue(propertyName, convertedValue);
@@ -65,6 +74,14 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
     return dataSource;
   }
 
+  /**
+   * 转换属性值的类型，将配置的值类型转换为数据源可以接受的类型
+   *
+   * @param metaDataSource 数据源类的元信息
+   * @param propertyName   属性名称
+   * @param value          属性值
+   * @return 转换类型后的值
+   */
   private Object convertValue(MetaObject metaDataSource, String propertyName, String value) {
     Object convertedValue = value;
     Class<?> targetType = metaDataSource.getSetterType(propertyName);

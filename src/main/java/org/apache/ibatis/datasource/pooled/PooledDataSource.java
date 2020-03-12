@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2019 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.datasource.pooled;
 
@@ -32,6 +32,7 @@ import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
 /**
+ * 池化的数据源
  * This is a simple, synchronous, thread-safe database connection pool.
  *
  * @author Clinton Begin
@@ -42,8 +43,10 @@ public class PooledDataSource implements DataSource {
 
   private final PoolState state = new PoolState(this);
 
+  //池化的数据源是对未池化的数据源进一步的封装
   private final UnpooledDataSource dataSource;
 
+  //mybatis自带池化的配置字段
   // OPTIONAL CONFIGURATION FIELDS
   protected int poolMaximumActiveConnections = 10;
   protected int poolMaximumIdleConnections = 5;
@@ -150,10 +153,10 @@ public class PooledDataSource implements DataSource {
   }
 
   /**
+   * 修改网络超时时长后，所有的活跃和心跳连接将关闭，并且如果连接不是自动提交的话，那连接下的所有事务将回滚
    * Sets the default network timeout value to wait for the database operation to complete. See {@link Connection#setNetworkTimeout(java.util.concurrent.Executor, int)}
-   * 
-   * @param milliseconds
-   *          The time in milliseconds to wait for the database operation to complete.
+   *
+   * @param milliseconds The time in milliseconds to wait for the database operation to complete.
    * @since 3.5.2
    */
   public void setDefaultNetworkTimeout(Integer milliseconds) {
@@ -185,13 +188,11 @@ public class PooledDataSource implements DataSource {
    * The maximum number of tolerance for bad connection happens in one thread
    * which are applying for new {@link PooledConnection}.
    *
-   * @param poolMaximumLocalBadConnectionTolerance
-   * max tolerance for bad connection happens in one thread
-   *
+   * @param poolMaximumLocalBadConnectionTolerance max tolerance for bad connection happens in one thread
    * @since 3.4.5
    */
   public void setPoolMaximumLocalBadConnectionTolerance(
-      int poolMaximumLocalBadConnectionTolerance) {
+    int poolMaximumLocalBadConnectionTolerance) {
     this.poolMaximumLocalBadConnectionTolerance = poolMaximumLocalBadConnectionTolerance;
   }
 
@@ -326,6 +327,7 @@ public class PooledDataSource implements DataSource {
           conn.invalidate();
 
           Connection realConn = conn.getRealConnection();
+          //非自动提交，则事务回滚
           if (!realConn.getAutoCommit()) {
             realConn.rollback();
           }
@@ -362,16 +364,22 @@ public class PooledDataSource implements DataSource {
     return ("" + url + username + password).hashCode();
   }
 
+  /**
+   * 压入一个新的连接
+   */
   protected void pushConnection(PooledConnection conn) throws SQLException {
 
     synchronized (state) {
       state.activeConnections.remove(conn);
       if (conn.isValid()) {
+        //心跳连接的数量小于连接池最大的心跳数量  同时，新的连接必须是当前数据源的连接，即连接类型码相同
         if (state.idleConnections.size() < poolMaximumIdleConnections && conn.getConnectionTypeCode() == expectedConnectionTypeCode) {
           state.accumulatedCheckoutTime += conn.getCheckoutTime();
+          //如果新加入的连接不是自动提交。则回滚该连接上的事务
           if (!conn.getRealConnection().getAutoCommit()) {
             conn.getRealConnection().rollback();
           }
+          //新建新的池化连接并接入到心跳连接池中
           PooledConnection newConn = new PooledConnection(conn.getRealConnection(), this);
           state.idleConnections.add(newConn);
           newConn.setCreatedTimestamp(conn.getCreatedTimestamp());
@@ -380,8 +388,10 @@ public class PooledDataSource implements DataSource {
           if (log.isDebugEnabled()) {
             log.debug("Returned connection " + newConn.getRealHashCode() + " to pool.");
           }
+          //唤醒所有在state上等待的线程
           state.notifyAll();
         } else {
+          //如果心跳池满了或者连接类型码不对，直接关闭要加入的连接
           state.accumulatedCheckoutTime += conn.getCheckoutTime();
           if (!conn.getRealConnection().getAutoCommit()) {
             conn.getRealConnection().rollback();
@@ -401,6 +411,9 @@ public class PooledDataSource implements DataSource {
     }
   }
 
+  /**
+   * 弹出一个连接
+   */
   private PooledConnection popConnection(String username, String password) throws SQLException {
     boolean countedWait = false;
     PooledConnection conn = null;
@@ -410,13 +423,13 @@ public class PooledDataSource implements DataSource {
     while (conn == null) {
       synchronized (state) {
         if (!state.idleConnections.isEmpty()) {
-          // Pool has available connection
+          // Pool has available connection   心跳池有可用的连接
           conn = state.idleConnections.remove(0);
           if (log.isDebugEnabled()) {
             log.debug("Checked out connection " + conn.getRealHashCode() + " from pool.");
           }
         } else {
-          // Pool does not have available connection
+          // Pool does not have available connection  心跳池没有可用的连接
           if (state.activeConnections.size() < poolMaximumActiveConnections) {
             // Can create new connection
             conn = new PooledConnection(dataSource.getConnection(), this);
@@ -424,7 +437,7 @@ public class PooledDataSource implements DataSource {
               log.debug("Created connection " + conn.getRealHashCode() + ".");
             }
           } else {
-            // Cannot create new connection
+            // Cannot create new connection 活跃连接池满了，
             PooledConnection oldestActiveConnection = state.activeConnections.get(0);
             long longestCheckoutTime = oldestActiveConnection.getCheckoutTime();
             if (longestCheckoutTime > poolMaximumCheckoutTime) {
@@ -476,6 +489,7 @@ public class PooledDataSource implements DataSource {
         }
         if (conn != null) {
           // ping to server and check the connection is valid or not
+          //如果弹出的连接里还有未完成的事务，则事务回滚
           if (conn.isValid()) {
             if (!conn.getRealConnection().getAutoCommit()) {
               conn.getRealConnection().rollback();
@@ -570,6 +584,7 @@ public class PooledDataSource implements DataSource {
   }
 
   /**
+   * 解包装连接
    * Unwraps a pooled connection to get to the 'real' connection
    *
    * @param conn - the pooled connection to unwrap
@@ -585,6 +600,9 @@ public class PooledDataSource implements DataSource {
     return conn;
   }
 
+  /**
+   * 当当前对象即将回收的时候，关闭所有的连接
+   */
   @Override
   protected void finalize() throws Throwable {
     forceCloseAll();
