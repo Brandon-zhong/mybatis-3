@@ -20,6 +20,7 @@ import java.sql.SQLException;
 
 /**
  * Wraps a database connection.
+ * 包装数据源连接接口，处理连接的生命周期包括：连接的创建，准备，提交/回滚，关闭
  * Handles the connection lifecycle that comprises: its creation, preparation, commit/rollback and close.
  *
  * @author Clinton Begin

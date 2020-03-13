@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2019 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.cache.decorators;
 
@@ -25,13 +25,15 @@ import org.apache.ibatis.cache.CacheException;
 
 /**
  * Simple blocking decorator
- *
+ * 简单的阻塞修饰缓存
+ * <p>
  * Simple and inefficient version of EhCache's BlockingCache decorator.
  * It sets a lock over a cache key when the element is not found in cache.
  * This way, other threads will wait until this element is filled instead of hitting the database.
+ * 简单的阻塞修饰的缓存，当向缓存中没有找到某个值的时候同时会创建一个锁，
+ * 这样当有其他线程要访问数据的时候就会堵塞住等待，直到这个数据从数据库查出来缓起来的时候，其他线程重缓冲中取数据
  *
  * @author Eduardo Macarron
- *
  */
 public class BlockingCache implements Cache {
 
@@ -85,17 +87,19 @@ public class BlockingCache implements Cache {
     delegate.clear();
   }
 
+  //获取某个key 的锁，如果该key没有锁，则创建一个
   private ReentrantLock getLockForKey(Object key) {
     return locks.computeIfAbsent(key, k -> new ReentrantLock());
   }
 
+  //对某个key进行加锁操作，如果当前cache实例有堵塞超时的话，那这个加锁操作有超时限制
   private void acquireLock(Object key) {
     Lock lock = getLockForKey(key);
     if (timeout > 0) {
       try {
         boolean acquired = lock.tryLock(timeout, TimeUnit.MILLISECONDS);
         if (!acquired) {
-          throw new CacheException("Couldn't get a lock in " + timeout + " for the key " +  key + " at the cache " + delegate.getId());
+          throw new CacheException("Couldn't get a lock in " + timeout + " for the key " + key + " at the cache " + delegate.getId());
         }
       } catch (InterruptedException e) {
         throw new CacheException("Got interrupted while trying to acquire lock for key " + key, e);
@@ -105,6 +109,7 @@ public class BlockingCache implements Cache {
     }
   }
 
+  //释放某个key 的锁
   private void releaseLock(Object key) {
     ReentrantLock lock = locks.get(key);
     if (lock.isHeldByCurrentThread()) {

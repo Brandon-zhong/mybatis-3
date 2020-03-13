@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2019 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.cache;
 
@@ -25,7 +25,9 @@ import java.util.concurrent.locks.ReadWriteLock;
  * The cache implementation must have a constructor that receives the cache id as an String parameter.
  * <p>
  * MyBatis will pass the namespace as id to the constructor.
- *
+ * <p>
+ * 缓存接口， 每个namespace都有生成一个缓存示例， 并且缓存的实现类必须有一个cache Id字符串参数的构造器
+ * mybatis将会将namespace作为缓存的id构造缓存
  * <pre>
  * public MyCache(final String id) {
  *  if (id == null) {
@@ -47,12 +49,16 @@ public interface Cache {
   String getId();
 
   /**
-   * @param key Can be any object but usually it is a {@link CacheKey}
+   * 向缓存中存数据， 缓存的key可以是任何对象，但是一般用CacheKey对象作为key
+   * 缓存的value是数据库的查询结果
+   *
+   * @param key   Can be any object but usually it is a {@link CacheKey}
    * @param value The result of a select.
    */
   void putObject(Object key, Object value);
 
   /**
+   * 获取缓存中的数据
    * @param key The key
    * @return The object stored in the cache.
    */
@@ -67,7 +73,6 @@ public interface Cache {
    * and releases it when the value is back again.
    * This way other threads will wait for the value to be
    * available instead of hitting the database.
-   *
    *
    * @param key The key
    * @return Not used

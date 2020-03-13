@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2019 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.cache.decorators;
 
@@ -25,13 +25,17 @@ import org.apache.ibatis.cache.Cache;
 /**
  * Soft Reference cache decorator
  * Thanks to Dr. Heinz Kabutz for his guidance here.
+ * 软引用 缓存修饰器， 缓存的内容会在内存吃紧的时候全部清空
  *
  * @author Clinton Begin
  */
 public class SoftCache implements Cache {
+  //强引用队列，避免被gc
   private final Deque<Object> hardLinksToAvoidGarbageCollection;
+  //已经被gc 的软引用队列
   private final ReferenceQueue<Object> queueOfGarbageCollectedEntries;
   private final Cache delegate;
+  //强引用队列的数量
   private int numberOfHardLinks;
 
   public SoftCache(Cache delegate) {
@@ -67,7 +71,7 @@ public class SoftCache implements Cache {
   public Object getObject(Object key) {
     Object result = null;
     @SuppressWarnings("unchecked") // assumed delegate cache is totally managed by this cache
-    SoftReference<Object> softReference = (SoftReference<Object>) delegate.getObject(key);
+      SoftReference<Object> softReference = (SoftReference<Object>) delegate.getObject(key);
     if (softReference != null) {
       result = softReference.get();
       if (result == null) {
@@ -100,6 +104,10 @@ public class SoftCache implements Cache {
     delegate.clear();
   }
 
+  /**
+   * 移除被gc 的软引用，软引用会在没有强引用和内存吃紧的情况下被gc掉，被gc掉后，软
+   * 引用对象会被加入到queueOfGarbageCollectedEntries中，之后只要把队列中的所有对象都从缓存中删掉即可
+   */
   private void removeGarbageCollectedItems() {
     SoftEntry sv;
     while ((sv = (SoftEntry) queueOfGarbageCollectedEntries.poll()) != null) {
@@ -107,6 +115,7 @@ public class SoftCache implements Cache {
     }
   }
 
+  //继承了软引用对象，整体思路和WeakCache一样
   private static class SoftEntry extends SoftReference<Object> {
     private final Object key;
 
