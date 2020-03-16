@@ -1,5 +1,5 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
+ *    Copyright 2009-2020 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.net.URL;
 
 /**
  * A class to wrap access to multiple class loaders making them work as one
+ * 包装多个类加载器来作为一个使用
  *
  * @author Clinton Begin
  */
@@ -103,6 +104,7 @@ public class ClassLoaderWrapper {
 
   /**
    * Try to get a resource from a group of classloaders
+   * 和获取URL类型资源的方法差不多，只是换成了InputStream类型
    *
    * @param resource    - the resource to get
    * @param classLoader - the classloaders to examine
@@ -130,6 +132,7 @@ public class ClassLoaderWrapper {
 
   /**
    * Get a resource as a URL using the current class path
+   * 尝试各种类加载器在当前类空间中加载资源
    *
    * @param resource    - the resource to locate
    * @param classLoader - the class loaders to examine
@@ -139,6 +142,7 @@ public class ClassLoaderWrapper {
 
     URL url;
 
+    //尝试各种类加载器来加载资源
     for (ClassLoader cl : classLoader) {
 
       if (null != cl) {
@@ -169,6 +173,7 @@ public class ClassLoaderWrapper {
 
   /**
    * Attempt to load a class from a group of classloaders
+   * 尝试通过一系列的加载器来加载指定的类
    *
    * @param name        - the class to load
    * @param classLoader - the group of classloaders to examine
@@ -201,13 +206,14 @@ public class ClassLoaderWrapper {
 
   }
 
+  //获取一系列的类加载器，包括传入的加载器， 当前对象默认的加载器， 当前线程的加载器， 当前类的加载器， 当前对象的系统加载器
   ClassLoader[] getClassLoaders(ClassLoader classLoader) {
     return new ClassLoader[]{
-        classLoader,
-        defaultClassLoader,
-        Thread.currentThread().getContextClassLoader(),
-        getClass().getClassLoader(),
-        systemClassLoader};
+      classLoader,
+      defaultClassLoader,
+      Thread.currentThread().getContextClassLoader(),
+      getClass().getClassLoader(),
+      systemClassLoader};
   }
 
 }
