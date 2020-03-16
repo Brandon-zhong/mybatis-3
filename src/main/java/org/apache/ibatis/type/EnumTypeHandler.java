@@ -21,6 +21,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
+ * 枚举的类型处理器， 这个只能是将枚举的name值存到数据库
  * @author Clinton Begin
  */
 public class EnumTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> {
@@ -36,9 +37,11 @@ public class EnumTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> {
 
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, E parameter, JdbcType jdbcType) throws SQLException {
+    //当JdbcType为空的时候，枚举的字符串形式
     if (jdbcType == null) {
       ps.setString(i, parameter.name());
     } else {
+      //否则用相应的JdbcType
       ps.setObject(i, parameter.name(), jdbcType.TYPE_CODE); // see r3589
     }
   }

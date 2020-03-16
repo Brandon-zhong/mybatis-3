@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2019 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.type;
 
@@ -34,11 +34,17 @@ import java.util.Calendar;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 数组类型的处理器
+ *
  * @author Clinton Begin
  */
 public class ArrayTypeHandler extends BaseTypeHandler<Object> {
 
+  /**
+   * 这是标准的JavaType和JdbcType的映射
+   */
   private static final ConcurrentHashMap<Class<?>, String> STANDARD_MAPPING;
+
   static {
     STANDARD_MAPPING = new ConcurrentHashMap<>();
     STANDARD_MAPPING.put(BigDecimal.class, JdbcType.NUMERIC.name());
@@ -77,24 +83,29 @@ public class ArrayTypeHandler extends BaseTypeHandler<Object> {
 
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, Object parameter, JdbcType jdbcType)
-      throws SQLException {
+    throws SQLException {
+    //检测参数的类型，当前是集合的值填充
     if (parameter instanceof Array) {
       // it's the user's responsibility to properly free() the Array instance
       ps.setArray(i, (Array) parameter);
     } else {
+      //检测是否是数组类型
       if (!parameter.getClass().isArray()) {
         throw new TypeException(
-            "ArrayType Handler requires SQL array or java array parameter and does not support type "
-                + parameter.getClass());
+          "ArrayType Handler requires SQL array or java array parameter and does not support type "
+            + parameter.getClass());
       }
+      //获取数据内元素的类型，并映射到响应的JdbcType字符串
       Class<?> componentType = parameter.getClass().getComponentType();
       String arrayTypeName = resolveTypeName(componentType);
+      //将数组转换成容器并设置参数
       Array array = ps.getConnection().createArrayOf(arrayTypeName, (Object[]) parameter);
       ps.setArray(i, array);
       array.free();
     }
   }
 
+  //解析数组内元素类型对应的JdbcType
   protected String resolveTypeName(Class<?> type) {
     return STANDARD_MAPPING.getOrDefault(type, JdbcType.JAVA_OBJECT.name());
   }
@@ -114,6 +125,7 @@ public class ArrayTypeHandler extends BaseTypeHandler<Object> {
     return extractArray(cs.getArray(columnIndex));
   }
 
+  //将容器提取成数组返回
   protected Object extractArray(Array array) throws SQLException {
     if (array == null) {
       return null;
