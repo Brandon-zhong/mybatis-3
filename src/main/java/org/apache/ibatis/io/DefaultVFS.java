@@ -178,6 +178,7 @@ public class DefaultVFS extends VFS {
   }
 
   /**
+   * 查询指定jar包下的所有符合条件的文件名
    * List the names of the entries in the given {@link JarInputStream} that begin with the
    * specified {@code path}. Entries will match with or without a leading slash.
    *

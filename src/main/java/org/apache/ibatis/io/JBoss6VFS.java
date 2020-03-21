@@ -27,7 +27,7 @@ import org.apache.ibatis.logging.LogFactory;
 
 /**
  * A {@link VFS} implementation that works with the VFS API provided by JBoss 6.
- * JBoss中的一个默认VFS实现
+ * JBoss中的一个默认VFS实现 要使用的话需要引入jBoss的vfs包
  *
  * @author Ben Gunter
  */
