@@ -55,6 +55,7 @@ import org.apache.ibatis.io.Resources;
  */
 public final class TypeHandlerRegistry {
 
+  //JdbcType和对应的类型处理器关联，这里的JdbcType是枚举，用了枚举map  EnumMap.
   private final Map<JdbcType, TypeHandler<?>> jdbcTypeHandlerMap = new EnumMap<>(JdbcType.class);
   //外层map的key为JavaType， 内层map的可以为JdbcType, 作用是一个JavaType可能对应多个JdbcType
   private final Map<Type, Map<JdbcType, TypeHandler<?>>> typeHandlerMap = new ConcurrentHashMap<>();
@@ -225,13 +226,17 @@ public final class TypeHandlerRegistry {
     if (ParamMap.class.equals(type)) {
       return null;
     }
+    //获取HandlerMap
     Map<JdbcType, TypeHandler<?>> jdbcHandlerMap = getJdbcHandlerMap(type);
     TypeHandler<?> handler = null;
     if (jdbcHandlerMap != null) {
+      //获取对应的jdbcType处理器
       handler = jdbcHandlerMap.get(jdbcType);
       if (handler == null) {
+        //没有的话则获取空处理器
         handler = jdbcHandlerMap.get(null);
       }
+      //也没有空的处理器
       if (handler == null) {
         // #591
         handler = pickSoleHandler(jdbcHandlerMap);
@@ -241,6 +246,9 @@ public final class TypeHandlerRegistry {
     return (TypeHandler<T>) handler;
   }
 
+  /**
+   * 根据javaType，获取这个JavaType下注册的所有的JdbcType和相应的类型处理器
+   */
   private Map<JdbcType, TypeHandler<?>> getJdbcHandlerMap(Type type) {
     Map<JdbcType, TypeHandler<?>> jdbcHandlerMap = typeHandlerMap.get(type);
     if (NULL_TYPE_HANDLER_MAP.equals(jdbcHandlerMap)) {
@@ -248,14 +256,19 @@ public final class TypeHandlerRegistry {
     }
     if (jdbcHandlerMap == null && type instanceof Class) {
       Class<?> clazz = (Class<?>) type;
+      //尝试枚举
       if (Enum.class.isAssignableFrom(clazz)) {
+        //匿名类，则获取父类
         Class<?> enumClass = clazz.isAnonymousClass() ? clazz.getSuperclass() : clazz;
+        //获取枚举接口的HandlerMap
         jdbcHandlerMap = getJdbcHandlerMapForEnumInterfaces(enumClass, enumClass);
         if (jdbcHandlerMap == null) {
+          //如果还是为空，则注册默认的枚举处理器
           register(enumClass, getInstance(enumClass, defaultEnumTypeHandler));
           return typeHandlerMap.get(enumClass);
         }
       } else {
+        //不是枚举的话，则使用父类的处理器
         jdbcHandlerMap = getJdbcHandlerMapForSuperclass(clazz);
       }
     }
@@ -267,11 +280,14 @@ public final class TypeHandlerRegistry {
     for (Class<?> iface : clazz.getInterfaces()) {
       Map<JdbcType, TypeHandler<?>> jdbcHandlerMap = typeHandlerMap.get(iface);
       if (jdbcHandlerMap == null) {
+        //递归获取接口
         jdbcHandlerMap = getJdbcHandlerMapForEnumInterfaces(iface, enumClazz);
       }
       if (jdbcHandlerMap != null) {
+        //找到父接口注册的处理器map
         // Found a type handler regsiterd to a super interface
         HashMap<JdbcType, TypeHandler<?>> newMap = new HashMap<>();
+        //讲这些处理器实例化并返回
         for (Entry<JdbcType, TypeHandler<?>> entry : jdbcHandlerMap.entrySet()) {
           // Create a type handler instance with enum type as a constructor arg
           newMap.put(entry.getKey(), getInstance(enumClazz, entry.getValue().getClass()));
@@ -284,6 +300,7 @@ public final class TypeHandlerRegistry {
 
   private Map<JdbcType, TypeHandler<?>> getJdbcHandlerMapForSuperclass(Class<?> clazz) {
     Class<?> superclass = clazz.getSuperclass();
+    //为空或者到了顶层类
     if (superclass == null || Object.class.equals(superclass)) {
       return null;
     }
@@ -291,10 +308,14 @@ public final class TypeHandlerRegistry {
     if (jdbcHandlerMap != null) {
       return jdbcHandlerMap;
     } else {
+      //递归查询父类处理器
       return getJdbcHandlerMapForSuperclass(superclass);
     }
   }
 
+  /**
+   * 返回map中唯一的一个处理器，如果数量不止一个，则返回空
+   */
   private TypeHandler<?> pickSoleHandler(Map<JdbcType, TypeHandler<?>> jdbcHandlerMap) {
     TypeHandler<?> soleHandler = null;
     for (TypeHandler<?> handler : jdbcHandlerMap.values()) {
