@@ -23,11 +23,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ * mapper代理工厂， 保存有mapper接口以及相应的
  * @author Lasse Voss
  */
 public class MapperProxyFactory<T> {
 
+  //mapper接口
   private final Class<T> mapperInterface;
+  //接口的方法缓存
   private final Map<Method, MapperMethod> methodCache = new ConcurrentHashMap<>();
 
   public MapperProxyFactory(Class<T> mapperInterface) {
@@ -47,6 +50,9 @@ public class MapperProxyFactory<T> {
     return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[] { mapperInterface }, mapperProxy);
   }
 
+  /**
+   * 创建一个mapper接口的实例对象，
+   */
   public T newInstance(SqlSession sqlSession) {
     final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession, mapperInterface, methodCache);
     return newInstance(mapperProxy);
