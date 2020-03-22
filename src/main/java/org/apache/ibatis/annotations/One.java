@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 import org.apache.ibatis.mapping.FetchType;
 
 /**
+ * 复杂类型的单独属性注解
  * @author Clinton Begin
  */
 @Documented
