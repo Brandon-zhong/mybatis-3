@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 映射类型注解，value表示当前注解类用来处理的类型，
+ * 映射类型注解，value表示当前注解类用来处理的java类型，
  * 注意：如果只有注解没有继承TypeHandler接口或TypeHandler的子类，则无效
  *
  * @author Eduardo Macarron

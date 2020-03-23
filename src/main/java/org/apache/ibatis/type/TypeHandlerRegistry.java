@@ -221,6 +221,9 @@ public final class TypeHandlerRegistry {
     return getTypeHandler(javaTypeReference.getRawType(), jdbcType);
   }
 
+  /**
+   * 通过制定的javaType和jdbcType获取关联的类型处理器
+   */
   @SuppressWarnings("unchecked")
   private <T> TypeHandler<T> getTypeHandler(Type type, JdbcType jdbcType) {
     if (ParamMap.class.equals(type)) {
@@ -247,7 +250,11 @@ public final class TypeHandlerRegistry {
   }
 
   /**
+   * <<<<<<< Updated upstream
    * 根据javaType，获取这个JavaType下注册的所有的JdbcType和相应的类型处理器
+   * =======
+   * 获取指定javaType 的所有jdbcType和处理器的关联map
+   * >>>>>>> Stashed changes
    */
   private Map<JdbcType, TypeHandler<?>> getJdbcHandlerMap(Type type) {
     Map<JdbcType, TypeHandler<?>> jdbcHandlerMap = typeHandlerMap.get(type);
@@ -399,6 +406,9 @@ public final class TypeHandlerRegistry {
     register((Type) type, jdbcType, handler);
   }
 
+  /**
+   * 将javaType， jdbcType， 和相应的处理器关联起来
+   */
   private void register(Type javaType, JdbcType jdbcType, TypeHandler<?> handler) {
     if (javaType != null) {
       Map<JdbcType, TypeHandler<?>> map = typeHandlerMap.get(javaType);
@@ -455,6 +465,9 @@ public final class TypeHandlerRegistry {
 
   // Construct a handler (used also from Builders)
 
+  /**
+   * 类型处理器构造方法
+   */
   @SuppressWarnings("unchecked")
   public <T> TypeHandler<T> getInstance(Class<?> javaTypeClass, Class<?> typeHandlerClass) {
     if (javaTypeClass != null) {
