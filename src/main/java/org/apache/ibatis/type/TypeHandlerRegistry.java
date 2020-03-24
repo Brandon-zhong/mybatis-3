@@ -491,7 +491,7 @@ public final class TypeHandlerRegistry {
   // scan
 
   /**
-   * 扫描指定包目录下的所有继承来TypeHandler的类，忽略掉内部类和抽象类和接口，其余的类全部注册到注册器中
+   * 扫描指定包目录下的所有继承自TypeHandler的类，忽略掉内部类和抽象类和接口，其余的类全部注册到注册器中
    */
   public void register(String packageName) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();

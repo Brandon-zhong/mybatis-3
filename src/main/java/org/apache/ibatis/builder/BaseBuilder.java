@@ -96,6 +96,7 @@ public abstract class BaseBuilder {
     }
   }
 
+  //创建别名对应类的实例
   protected Object createInstance(String alias) {
     Class<?> clazz = resolveClass(alias);
     if (clazz == null) {
@@ -123,6 +124,7 @@ public abstract class BaseBuilder {
     if (typeHandlerAlias == null) {
       return null;
     }
+    //解析别名class
     Class<?> type = resolveClass(typeHandlerAlias);
     if (type != null && !TypeHandler.class.isAssignableFrom(type)) {
       throw new BuilderException("Type " + type.getName() + " is not a valid TypeHandler because it does not implement TypeHandler interface");
@@ -132,19 +134,24 @@ public abstract class BaseBuilder {
     return resolveTypeHandler(javaType, typeHandlerType);
   }
 
+  /**
+   * 解析类型处理器
+   */
   protected TypeHandler<?> resolveTypeHandler(Class<?> javaType, Class<? extends TypeHandler<?>> typeHandlerType) {
     if (typeHandlerType == null) {
       return null;
     }
+    //获取处理器
     // javaType ignored for injected handlers see issue #746 for full detail
     TypeHandler<?> handler = typeHandlerRegistry.getMappingTypeHandler(typeHandlerType);
     if (handler == null) {
-      // not in registry, create a new one
+      // not in registry, create a new one  没有注册就直接创建
       handler = typeHandlerRegistry.getInstance(javaType, typeHandlerType);
     }
     return handler;
   }
 
+  //解析别名
   protected <T> Class<? extends T> resolveAlias(String alias) {
     return typeAliasRegistry.resolveAlias(alias);
   }

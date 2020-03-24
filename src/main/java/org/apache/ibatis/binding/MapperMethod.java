@@ -329,6 +329,7 @@ public class MapperMethod {
       this.paramNameResolver = new ParamNameResolver(configuration, method);
     }
 
+    //
     public Object convertArgsToSqlCommandParam(Object[] args) {
       return paramNameResolver.getNamedParams(args);
     }
@@ -383,14 +384,20 @@ public class MapperMethod {
       return returnsOptional;
     }
 
+    /**
+     * 获取方法唯一的参数下标
+     */
     private Integer getUniqueParamIndex(Method method, Class<?> paramType) {
       Integer index = null;
+      //方法所有的参数类型列表
       final Class<?>[] argTypes = method.getParameterTypes();
       for (int i = 0; i < argTypes.length; i++) {
+        //类型符合，且类型不重复
         if (paramType.isAssignableFrom(argTypes[i])) {
           if (index == null) {
             index = i;
           } else {
+            //类型重复抛出异常
             throw new BindingException(method.getName() + " cannot have multiple " + paramType.getSimpleName() + " parameters");
           }
         }
@@ -398,6 +405,9 @@ public class MapperMethod {
       return index;
     }
 
+    /**
+     * 获取方法的mapKey注解
+     */
     private String getMapKey(Method method) {
       String mapKey = null;
       if (Map.class.isAssignableFrom(method.getReturnType())) {

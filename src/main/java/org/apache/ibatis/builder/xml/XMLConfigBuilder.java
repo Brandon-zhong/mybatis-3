@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2020 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2020 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.builder.xml;
 
@@ -90,7 +90,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     this.parser = parser;
   }
 
+  //开始解析xml配置文件
   public Configuration parse() {
+    //只能解析一次
     if (parsed) {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
@@ -122,6 +124,10 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 读取settings数据，因为settings的数据要设置到Configuration中，
+   * settings中的所有key必须在Configuration中有响应的setter方法，否则报错
+   */
   private Properties settingsAsProperties(XNode context) {
     if (context == null) {
       return new Properties();
@@ -137,6 +143,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     return props;
   }
 
+  /**
+   * 加载自定义的VFS，注意：如果有多个实现类的话，其他的会注册到VFS{@link VFS#addImplClass(Class)}中，只有最后一个会设置到configuration中
+   */
   private void loadCustomVfs(Properties props) throws ClassNotFoundException {
     String value = props.getProperty("vfsImpl");
     if (value != null) {
@@ -151,18 +160,26 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 加载自定义的log实现
+   */
   private void loadCustomLogImpl(Properties props) {
     Class<? extends Log> logImpl = resolveClass(props.getProperty("logImpl"));
     configuration.setLogImpl(logImpl);
   }
 
+  /**
+   * 注册类的别名
+   */
   private void typeAliasesElement(XNode parent) {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
+        //整个包下的所有类都注册别名，没有@alias注解的类用类名作为别名
         if ("package".equals(child.getName())) {
           String typeAliasPackage = child.getStringAttribute("name");
           configuration.getTypeAliasRegistry().registerAliases(typeAliasPackage);
         } else {
+          //注册指定的别名和类型
           String alias = child.getStringAttribute("alias");
           String type = child.getStringAttribute("type");
           try {
@@ -180,6 +197,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 启用的插件配置
+   */
   private void pluginElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
@@ -192,6 +212,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 对象工厂配置
+   */
   private void objectFactoryElement(XNode context) throws Exception {
     if (context != null) {
       String type = context.getStringAttribute("type");
@@ -202,6 +225,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 对象包装工厂
+   */
   private void objectWrapperFactoryElement(XNode context) throws Exception {
     if (context != null) {
       String type = context.getStringAttribute("type");
@@ -210,6 +236,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 反射器工厂
+   */
   private void reflectorFactoryElement(XNode context) throws Exception {
     if (context != null) {
       String type = context.getStringAttribute("type");
@@ -240,6 +269,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 设置settings，就是将settings中的值通过set方法设置到configuration中
+   */
   private void settingsElement(Properties props) {
     configuration.setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty("autoMappingBehavior", "PARTIAL")));
     configuration.setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior.valueOf(props.getProperty("autoMappingUnknownColumnBehavior", "NONE")));
@@ -354,13 +386,18 @@ public class XMLConfigBuilder extends BaseBuilder {
     throw new BuilderException("Environment declaration requires a DataSourceFactory.");
   }
 
+  /**
+   * 类型处理器配置
+   */
   private void typeHandlerElement(XNode parent) {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
+        //注册整个包下的所有类型处理器
         if ("package".equals(child.getName())) {
           String typeHandlerPackage = child.getStringAttribute("name");
           typeHandlerRegistry.register(typeHandlerPackage);
         } else {
+          //单独注册指定的处理器
           String javaTypeName = child.getStringAttribute("javaType");
           String jdbcTypeName = child.getStringAttribute("jdbcType");
           String handlerTypeName = child.getStringAttribute("handler");
@@ -388,9 +425,10 @@ public class XMLConfigBuilder extends BaseBuilder {
    * @throws Exception 异常
    */
   private void mapperElement(XNode parent) throws Exception {
-    //TODO 先标注一下，这里是mapper文件的解析，看完配置文件的解析再看这里
+    //这里是mapper文件的解析，看完配置文件的解析再看这里
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
+        //将指定包下的所有mapper注册
         if ("package".equals(child.getName())) {
           String mapperPackage = child.getStringAttribute("name");
           configuration.addMappers(mapperPackage);
@@ -398,16 +436,20 @@ public class XMLConfigBuilder extends BaseBuilder {
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
           String mapperClass = child.getStringAttribute("class");
+          //xml文件构建mapper  classpath文件信息
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);
             InputStream inputStream = Resources.getResourceAsStream(resource);
+            //构建xmlMapper构建器，并将mapper信息解析到configuration存储起来
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
             mapperParser.parse();
+            //xml文件构建mapper， url：file形式
           } else if (resource == null && url != null && mapperClass == null) {
             ErrorContext.instance().resource(url);
             InputStream inputStream = Resources.getUrlAsStream(url);
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
             mapperParser.parse();
+            //class构建
           } else if (resource == null && url == null && mapperClass != null) {
             Class<?> mapperInterface = Resources.classForName(mapperClass);
             configuration.addMapper(mapperInterface);
