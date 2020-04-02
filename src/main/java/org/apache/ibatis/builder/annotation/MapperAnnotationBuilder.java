@@ -92,6 +92,7 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.UnknownTypeHandler;
 
 /**
+ * mapper注释构建
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
@@ -117,7 +118,9 @@ public class MapperAnnotationBuilder {
   }
 
   public MapperAnnotationBuilder(Configuration configuration, Class<?> type) {
+    //将类名换成资源路径
     String resource = type.getName().replace('.', '/') + ".java (best guess)";
+    //生成mapper构建助手
     this.assistant = new MapperBuilderAssistant(configuration, resource);
     this.configuration = configuration;
     this.type = type;
@@ -126,15 +129,19 @@ public class MapperAnnotationBuilder {
   public void parse() {
     String resource = type.toString();
     if (!configuration.isResourceLoaded(resource)) {
+      //加载xml资源文件
       loadXmlResource();
+      //标记当前资源已加载
       configuration.addLoadedResource(resource);
       assistant.setCurrentNamespace(type.getName());
+      //解析缓存注解
       parseCache();
+      //解析缓存引用
       parseCacheRef();
       Method[] methods = type.getMethods();
       for (Method method : methods) {
         try {
-          // issue #237
+          // issue #237 解析方法
           if (!method.isBridge()) {
             parseStatement(method);
           }
@@ -167,17 +174,20 @@ public class MapperAnnotationBuilder {
     // this flag is set at XMLMapperBuilder#bindMapperForNamespace
     //检测是否加载过xml文件
     if (!configuration.isResourceLoaded("namespace:" + type.getName())) {
+      //寻找类名的xml文件
       String xmlResource = type.getName().replace('.', '/') + ".xml";
-      // #1347
+      // #1347 在根目录下寻找文件
       InputStream inputStream = type.getResourceAsStream("/" + xmlResource);
       if (inputStream == null) {
         // Search XML mapper that is not in the module but in the classpath.
         try {
+          //未找到，尝试在类路径下找文件
           inputStream = Resources.getResourceAsStream(type.getClassLoader(), xmlResource);
         } catch (IOException e2) {
           // ignore, resource is not required
         }
       }
+      //找到了相应的资源文件，开始解析xml文件
       if (inputStream != null) {
         XMLMapperBuilder xmlParser = new XMLMapperBuilder(inputStream, assistant.getConfiguration(), xmlResource, configuration.getSqlFragments(), type.getName());
         xmlParser.parse();
@@ -185,6 +195,7 @@ public class MapperAnnotationBuilder {
     }
   }
 
+  //解析缓存配置
   private void parseCache() {
     CacheNamespace cacheDomain = type.getAnnotation(CacheNamespace.class);
     if (cacheDomain != null) {
@@ -207,6 +218,7 @@ public class MapperAnnotationBuilder {
     return props;
   }
 
+  //解析缓存引用
   private void parseCacheRef() {
     CacheNamespaceRef cacheDomainRef = type.getAnnotation(CacheNamespaceRef.class);
     if (cacheDomainRef != null) {
@@ -220,6 +232,7 @@ public class MapperAnnotationBuilder {
       }
       String namespace = (refType != void.class) ? refType.getName() : refName;
       try {
+        //使用解析出来的缓存空间
         assistant.useCacheRef(namespace);
       } catch (IncompleteElementException e) {
         configuration.addIncompleteCacheRef(new CacheRefResolver(assistant, namespace));
@@ -302,6 +315,7 @@ public class MapperAnnotationBuilder {
     LanguageDriver languageDriver = getLanguageDriver(method);
     SqlSource sqlSource = getSqlSourceFromAnnotations(method, parameterTypeClass, languageDriver);
     if (sqlSource != null) {
+      //解析各种属性
       Options options = method.getAnnotation(Options.class);
       final String mappedStatementId = type.getName() + "." + method.getName();
       Integer fetchSize = null;
@@ -319,7 +333,9 @@ public class MapperAnnotationBuilder {
       if (SqlCommandType.INSERT.equals(sqlCommandType) || SqlCommandType.UPDATE.equals(sqlCommandType)) {
         // first check for SelectKey annotation - that overrides everything else
         SelectKey selectKey = method.getAnnotation(SelectKey.class);
+        //selectKey相关解析
         if (selectKey != null) {
+          //解析selectKey注解
           keyGenerator = handleSelectKeyAnnotation(selectKey, mappedStatementId, getParameterType(method), languageDriver);
           keyProperty = selectKey.keyProperty();
         } else if (options == null) {
@@ -391,6 +407,9 @@ public class MapperAnnotationBuilder {
     return configuration.getLanguageDriver(langClass);
   }
 
+  /**
+   * 根据是否多参数决定是返回单参数类型或者ParamMap类型
+   */
   private Class<?> getParameterType(Method method) {
     Class<?> parameterType = null;
     Class<?>[] parameterTypes = method.getParameterTypes();
