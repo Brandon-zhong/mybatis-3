@@ -29,18 +29,22 @@ import org.apache.ibatis.scripting.defaults.RawSqlSource;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * xml 语言驱动
  * @author Eduardo Macarron
  */
 public class XMLLanguageDriver implements LanguageDriver {
 
   @Override
   public ParameterHandler createParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
+    //使用默认的参数出来
     return new DefaultParameterHandler(mappedStatement, parameterObject, boundSql);
   }
 
   @Override
   public SqlSource createSqlSource(Configuration configuration, XNode script, Class<?> parameterType) {
+    //xml脚本构建器
     XMLScriptBuilder builder = new XMLScriptBuilder(configuration, script, parameterType);
+    //解析脚本节点
     return builder.parseScriptNode();
   }
 
