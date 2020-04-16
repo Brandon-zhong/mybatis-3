@@ -21,7 +21,9 @@ import java.util.List;
  * @author Clinton Begin
  */
 public class ChooseSqlNode implements SqlNode {
+  //otherwise对应的节点
   private final SqlNode defaultSqlNode;
+  //when对应的节点， when的具体实现是套用if标签的实现
   private final List<SqlNode> ifSqlNodes;
 
   public ChooseSqlNode(List<SqlNode> ifSqlNodes, SqlNode defaultSqlNode) {
@@ -31,11 +33,13 @@ public class ChooseSqlNode implements SqlNode {
 
   @Override
   public boolean apply(DynamicContext context) {
+    //循环执行所有的when表达式，只要有一个成功了就返回
     for (SqlNode sqlNode : ifSqlNodes) {
       if (sqlNode.apply(context)) {
         return true;
       }
     }
+    //如果所有的when表达式都不通过，则执行otherwise的内容
     if (defaultSqlNode != null) {
       defaultSqlNode.apply(context);
       return true;

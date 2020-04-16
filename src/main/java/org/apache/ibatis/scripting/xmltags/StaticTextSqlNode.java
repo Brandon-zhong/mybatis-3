@@ -16,6 +16,7 @@
 package org.apache.ibatis.scripting.xmltags;
 
 /**
+ * 静态文本节点，所有不含表达式的节点都归属静态文本，直接append就好了
  * @author Clinton Begin
  */
 public class StaticTextSqlNode implements SqlNode {

@@ -21,6 +21,7 @@ import java.util.List;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * where标签是基于trim标签来实现的
  * @author Clinton Begin
  */
 public class WhereSqlNode extends TrimSqlNode {

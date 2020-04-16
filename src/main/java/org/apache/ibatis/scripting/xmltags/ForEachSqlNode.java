@@ -26,13 +26,16 @@ import org.apache.ibatis.session.Configuration;
 public class ForEachSqlNode implements SqlNode {
   public static final String ITEM_PREFIX = "__frch_";
 
+  //各项表达式
   private final ExpressionEvaluator evaluator;
   private final String collectionExpression;
   private final SqlNode contents;
   private final String open;
   private final String close;
   private final String separator;
+  //每项对应的名字-开发者写SQL是用的
   private final String item;
+  //每个索引值名称-开发者写SQL是要用索引的时候用的
   private final String index;
   private final Configuration configuration;
 
@@ -50,16 +53,20 @@ public class ForEachSqlNode implements SqlNode {
 
   @Override
   public boolean apply(DynamicContext context) {
+    //获取各项参数值
     Map<String, Object> bindings = context.getBindings();
+    //获取数组参数的迭代器
     final Iterable<?> iterable = evaluator.evaluateIterable(collectionExpression, bindings);
     if (!iterable.iterator().hasNext()) {
       return true;
     }
     boolean first = true;
+    //应用open的值
     applyOpen(context);
     int i = 0;
     for (Object o : iterable) {
       DynamicContext oldContext = context;
+      //首位不用分隔符
       if (first || separator == null) {
         context = new PrefixedContext(context, "");
       } else {
@@ -70,7 +77,9 @@ public class ForEachSqlNode implements SqlNode {
       if (o instanceof Map.Entry) {
         @SuppressWarnings("unchecked")
         Map.Entry<Object, Object> mapEntry = (Map.Entry<Object, Object>) o;
+        //应用SQL下标
         applyIndex(context, mapEntry.getKey(), uniqueNumber);
+        //应用SQL参数
         applyItem(context, mapEntry.getValue(), uniqueNumber);
       } else {
         applyIndex(context, i, uniqueNumber);
@@ -83,7 +92,9 @@ public class ForEachSqlNode implements SqlNode {
       context = oldContext;
       i++;
     }
+    //应用close值
     applyClose(context);
+    //移除参数和下标
     context.getBindings().remove(item);
     context.getBindings().remove(index);
     return true;
@@ -121,8 +132,11 @@ public class ForEachSqlNode implements SqlNode {
 
   private static class FilteredDynamicContext extends DynamicContext {
     private final DynamicContext delegate;
+    //唯一索引
     private final int index;
+    //下标对应的名字
     private final String itemIndex;
+    //遍历的每项的名字
     private final String item;
 
     public FilteredDynamicContext(Configuration configuration,DynamicContext delegate, String itemIndex, String item, int i) {
@@ -150,6 +164,7 @@ public class ForEachSqlNode implements SqlNode {
 
     @Override
     public void appendSql(String sql) {
+      //这里处理foreach中的每个占位符的值，替换为含有item 的占位符
       GenericTokenParser parser = new GenericTokenParser("#{", "}", content -> {
         String newContent = content.replaceFirst("^\\s*" + item + "(?![^.,:\\s])", itemizeItem(item, index));
         if (itemIndex != null && newContent.equals(content)) {
@@ -169,6 +184,7 @@ public class ForEachSqlNode implements SqlNode {
   }
 
 
+  //拼接每次循环的前缀
   private class PrefixedContext extends DynamicContext {
     private final DynamicContext delegate;
     private final String prefix;

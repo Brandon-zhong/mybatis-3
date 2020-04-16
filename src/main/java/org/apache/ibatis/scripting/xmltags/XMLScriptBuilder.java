@@ -139,10 +139,15 @@ public class XMLScriptBuilder extends BaseBuilder {
 
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+      //解析标签内的动态子标签
       MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
+      //前缀
       String prefix = nodeToHandle.getStringAttribute("prefix");
+      //要被重写的前缀值
       String prefixOverrides = nodeToHandle.getStringAttribute("prefixOverrides");
+      //尾缀
       String suffix = nodeToHandle.getStringAttribute("suffix");
+      //要被替换的尾缀值
       String suffixOverrides = nodeToHandle.getStringAttribute("suffixOverrides");
       TrimSqlNode trim = new TrimSqlNode(configuration, mixedSqlNode, prefix, prefixOverrides, suffix, suffixOverrides);
       targetContents.add(trim);
@@ -183,6 +188,7 @@ public class XMLScriptBuilder extends BaseBuilder {
 
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+      //动态子标签的值
       MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
       String collection = nodeToHandle.getStringAttribute("collection");
       String item = nodeToHandle.getStringAttribute("item");

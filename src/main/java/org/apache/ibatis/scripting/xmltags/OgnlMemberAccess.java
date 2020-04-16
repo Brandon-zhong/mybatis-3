@@ -24,6 +24,7 @@ import ognl.MemberAccess;
 import org.apache.ibatis.reflection.Reflector;
 
 /**
+ * 成员访问器
  * The {@link MemberAccess} class that based on <a href=
  * 'https://github.com/jkuhnert/ognl/blob/OGNL_3_2_1/src/java/ognl/DefaultMemberAccess.java'>DefaultMemberAccess</a>.
  *
@@ -45,6 +46,7 @@ class OgnlMemberAccess implements MemberAccess {
   @Override
   public Object setup(Map context, Object target, Member member, String propertyName) {
     Object result = null;
+    //是否可以访问
     if (isAccessible(context, target, member, propertyName)) {
       AccessibleObject accessible = (AccessibleObject) member;
       if (!accessible.isAccessible()) {
@@ -59,6 +61,7 @@ class OgnlMemberAccess implements MemberAccess {
   public void restore(Map context, Object target, Member member, String propertyName,
       Object state) {
     if (state != null) {
+      //修改访问状态
       ((AccessibleObject) member).setAccessible((Boolean) state);
     }
   }

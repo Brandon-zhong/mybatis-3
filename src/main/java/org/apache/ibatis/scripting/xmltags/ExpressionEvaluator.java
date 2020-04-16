@@ -24,18 +24,23 @@ import java.util.Map;
 import org.apache.ibatis.builder.BuilderException;
 
 /**
+ * ONGL表达式计算
  * @author Clinton Begin
  */
 public class ExpressionEvaluator {
 
+  //判断表达式对应的值是否是true
   public boolean evaluateBoolean(String expression, Object parameterObject) {
+    //获取表达式的值
     Object value = OgnlCache.getValue(expression, parameterObject);
     if (value instanceof Boolean) {
       return (Boolean) value;
     }
+    //如果是数字，则判是否为0
     if (value instanceof Number) {
       return new BigDecimal(String.valueOf(value)).compareTo(BigDecimal.ZERO) != 0;
     }
+    //判空
     return value != null;
   }
 

@@ -44,6 +44,11 @@ public class DynamicContext {
   private final StringJoiner sqlBuilder = new StringJoiner(" ");
   private int uniqueNumber = 0;
 
+  /**
+   * 动态SQL的上下文
+   * @param configuration 当前动态SQL的配置信息
+   * @param parameterObject 参数对象
+   */
   public DynamicContext(Configuration configuration, Object parameterObject) {
     if (parameterObject != null && !(parameterObject instanceof Map)) {
       MetaObject metaObject = configuration.newMetaObject(parameterObject);
@@ -52,6 +57,7 @@ public class DynamicContext {
     } else {
       bindings = new ContextMap(null, false);
     }
+    //保存参数对象
     bindings.put(PARAMETER_OBJECT_KEY, parameterObject);
     bindings.put(DATABASE_ID_KEY, configuration.getDatabaseId());
   }

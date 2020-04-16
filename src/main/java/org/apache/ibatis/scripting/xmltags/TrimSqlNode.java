@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2018 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2018 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.scripting.xmltags;
 
@@ -29,6 +29,7 @@ import org.apache.ibatis.session.Configuration;
  */
 public class TrimSqlNode implements SqlNode {
 
+  //标签内的子标签内容
   private final SqlNode contents;
   private final String prefix;
   private final String suffix;
@@ -52,11 +53,13 @@ public class TrimSqlNode implements SqlNode {
   @Override
   public boolean apply(DynamicContext context) {
     FilteredDynamicContext filteredDynamicContext = new FilteredDynamicContext(context);
+    //先执行子标签的操作
     boolean result = contents.apply(filteredDynamicContext);
     filteredDynamicContext.applyAll();
     return result;
   }
 
+  //解析要重写的值，值之间用|分隔
   private static List<String> parseOverrides(String overrides) {
     if (overrides != null) {
       final StringTokenizer parser = new StringTokenizer(overrides, "|", false);
@@ -70,8 +73,11 @@ public class TrimSqlNode implements SqlNode {
   }
 
   private class FilteredDynamicContext extends DynamicContext {
+    //委托的对象
     private DynamicContext delegate;
+    //prefix是否已经应用
     private boolean prefixApplied;
+    //suffix是否已经应用
     private boolean suffixApplied;
     private StringBuilder sqlBuffer;
 
@@ -87,7 +93,9 @@ public class TrimSqlNode implements SqlNode {
       sqlBuffer = new StringBuilder(sqlBuffer.toString().trim());
       String trimmedUppercaseSql = sqlBuffer.toString().toUpperCase(Locale.ENGLISH);
       if (trimmedUppercaseSql.length() > 0) {
+        //应用前缀
         applyPrefix(sqlBuffer, trimmedUppercaseSql);
+        //应用尾缀
         applySuffix(sqlBuffer, trimmedUppercaseSql);
       }
       delegate.appendSql(sqlBuffer.toString());
@@ -118,17 +126,21 @@ public class TrimSqlNode implements SqlNode {
       return delegate.getSql();
     }
 
+    //应用前缀
     private void applyPrefix(StringBuilder sql, String trimmedUppercaseSql) {
+      //只做一次处理
       if (!prefixApplied) {
         prefixApplied = true;
         if (prefixesToOverride != null) {
           for (String toRemove : prefixesToOverride) {
+            //如果是以响应的前缀开头，则删除，只删除第一个匹配的前缀
             if (trimmedUppercaseSql.startsWith(toRemove)) {
               sql.delete(0, toRemove.trim().length());
               break;
             }
           }
         }
+        //插入前缀
         if (prefix != null) {
           sql.insert(0, " ");
           sql.insert(0, prefix);
@@ -136,11 +148,13 @@ public class TrimSqlNode implements SqlNode {
       }
     }
 
+    //应用尾缀
     private void applySuffix(StringBuilder sql, String trimmedUppercaseSql) {
       if (!suffixApplied) {
         suffixApplied = true;
         if (suffixesToOverride != null) {
           for (String toRemove : suffixesToOverride) {
+            //去除尾缀的内容， 只去除第一个匹配的尾缀
             if (trimmedUppercaseSql.endsWith(toRemove) || trimmedUppercaseSql.endsWith(toRemove.trim())) {
               int start = sql.length() - toRemove.trim().length();
               int end = sql.length();
@@ -149,6 +163,7 @@ public class TrimSqlNode implements SqlNode {
             }
           }
         }
+        //应用尾缀
         if (suffix != null) {
           sql.append(" ");
           sql.append(suffix);

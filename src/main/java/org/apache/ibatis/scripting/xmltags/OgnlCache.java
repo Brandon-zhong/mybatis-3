@@ -24,6 +24,7 @@ import ognl.OgnlException;
 import org.apache.ibatis.builder.BuilderException;
 
 /**
+ * ognl表达式解析的缓存类
  * Caches OGNL parsed expressions.
  *
  * @author Eduardo Macarron
@@ -40,6 +41,7 @@ public final class OgnlCache {
     // Prevent Instantiation of Static Class
   }
 
+  //根据表达式和root节点 获取对表达式对应的值
   public static Object getValue(String expression, Object root) {
     try {
       Map context = Ognl.createDefaultContext(root, MEMBER_ACCESS, CLASS_RESOLVER, null);
@@ -49,6 +51,7 @@ public final class OgnlCache {
     }
   }
 
+  //解析表达式，解析之后并缓存解析的结果
   private static Object parseExpression(String expression) throws OgnlException {
     Object node = expressionCache.get(expression);
     if (node == null) {
