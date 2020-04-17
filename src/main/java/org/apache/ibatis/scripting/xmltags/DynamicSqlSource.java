@@ -35,12 +35,16 @@ public class DynamicSqlSource implements SqlSource {
 
   @Override
   public BoundSql getBoundSql(Object parameterObject) {
+    //传入配置和参数集合，生成SQL的动态上下文
     DynamicContext context = new DynamicContext(configuration, parameterObject);
+    //这一步走完，也就在context中生成了完整的SQL，也就是将所有的if，foreach标签都执行完了
     rootSqlNode.apply(context);
     SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
     Class<?> parameterType = parameterObject == null ? Object.class : parameterObject.getClass();
+    //这里将所有的#{}占位符替换为?， 返回一个static SQLSource对象
     SqlSource sqlSource = sqlSourceParser.parse(context.getSql(), parameterType, context.getBindings());
     BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
+    //将所有的参数设置到到boundSQL中的额外参数中
     context.getBindings().forEach(boundSql::setAdditionalParameter);
     return boundSql;
   }
