@@ -38,6 +38,7 @@ import org.apache.ibatis.transaction.Transaction;
  */
 public class ReuseExecutor extends BaseExecutor {
 
+  //sql和statement的关联关系，缓存statement
   private final Map<String, Statement> statementMap = new HashMap<>();
 
   public ReuseExecutor(Configuration configuration, Transaction transaction) {
@@ -81,8 +82,11 @@ public class ReuseExecutor extends BaseExecutor {
     Statement stmt;
     BoundSql boundSql = handler.getBoundSql();
     String sql = boundSql.getSql();
+    //查询当前SQL是否已经生成statement
     if (hasStatementFor(sql)) {
+      //获取缓存中的statement
       stmt = getStatement(sql);
+      //设置事务超时时间
       applyTransactionTimeout(stmt);
     } else {
       Connection connection = getConnection(statementLog);

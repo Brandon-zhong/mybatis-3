@@ -32,6 +32,7 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
+ * 简单SQL执行器, 继承自 BaseExecutor
  * @author Clinton Begin
  */
 public class SimpleExecutor extends BaseExecutor {
@@ -41,12 +42,16 @@ public class SimpleExecutor extends BaseExecutor {
   }
 
   @Override
+  //增删改的具体执行
   public int doUpdate(MappedStatement ms, Object parameter) throws SQLException {
     Statement stmt = null;
     try {
       Configuration configuration = ms.getConfiguration();
+      //创建statement处理器
       StatementHandler handler = configuration.newStatementHandler(this, ms, parameter, RowBounds.DEFAULT, null, null);
+      //初始化statement对象
       stmt = prepareStatement(handler, ms.getStatementLog());
+      //真正执行SQL
       return handler.update(stmt);
     } finally {
       closeStatement(stmt);
@@ -58,6 +63,7 @@ public class SimpleExecutor extends BaseExecutor {
     Statement stmt = null;
     try {
       Configuration configuration = ms.getConfiguration();
+      //创建执行器，具体执行由内部被包装的执行器执行
       StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
       stmt = prepareStatement(handler, ms.getStatementLog());
       return handler.query(stmt, resultHandler);
@@ -71,6 +77,7 @@ public class SimpleExecutor extends BaseExecutor {
     Configuration configuration = ms.getConfiguration();
     StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, null, boundSql);
     Statement stmt = prepareStatement(handler, ms.getStatementLog());
+    //操作完成自动关闭
     stmt.closeOnCompletion();
     return handler.queryCursor(stmt);
   }
@@ -82,8 +89,11 @@ public class SimpleExecutor extends BaseExecutor {
 
   private Statement prepareStatement(StatementHandler handler, Log statementLog) throws SQLException {
     Statement stmt;
+    //获取连接
     Connection connection = getConnection(statementLog);
+    //创建statement对象
     stmt = handler.prepare(connection, transaction.getTimeout());
+    //设置sql参数
     handler.parameterize(stmt);
     return stmt;
   }
