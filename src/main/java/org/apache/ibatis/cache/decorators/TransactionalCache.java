@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2020 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2020 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.cache.decorators;
 
@@ -41,7 +41,9 @@ public class TransactionalCache implements Cache {
 
   private final Cache delegate;
   private boolean clearOnCommit;
+  //待提交的缓存对
   private final Map<Object, Object> entriesToAddOnCommit;
+  //未命中的key集合
   private final Set<Object> entriesMissedInCache;
 
   public TransactionalCache(Cache delegate) {
@@ -66,8 +68,10 @@ public class TransactionalCache implements Cache {
     // issue #116
     Object object = delegate.getObject(key);
     if (object == null) {
+      //加入未命中集合
       entriesMissedInCache.add(key);
     }
+    //如果调用了清空方法，但是未提交，则返回空值
     // issue #146
     if (clearOnCommit) {
       return null;
@@ -78,6 +82,7 @@ public class TransactionalCache implements Cache {
 
   @Override
   public void putObject(Object key, Object object) {
+    //添加到未提交集合中
     entriesToAddOnCommit.put(key, object);
   }
 
@@ -93,10 +98,13 @@ public class TransactionalCache implements Cache {
   }
 
   public void commit() {
+    //清除二级缓存中的所有数据
     if (clearOnCommit) {
       delegate.clear();
     }
+    //将待提交的数据提交到二级缓存中
     flushPendingEntries();
+    //重置
     reset();
   }
 
@@ -113,6 +121,7 @@ public class TransactionalCache implements Cache {
 
   private void flushPendingEntries() {
 
+    //将所有的待提交cache放置到二级缓存中
     for (Map.Entry<Object, Object> entry : entriesToAddOnCommit.entrySet()) {
       delegate.putObject(entry.getKey(), entry.getValue());
     }
@@ -125,6 +134,7 @@ public class TransactionalCache implements Cache {
   }
 
   private void unlockMissedEntries() {
+    //移除所有的未命中key
     for (Object entry : entriesMissedInCache) {
       try {
         delegate.removeObject(entry);

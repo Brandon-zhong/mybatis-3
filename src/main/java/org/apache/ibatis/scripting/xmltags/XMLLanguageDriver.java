@@ -36,7 +36,7 @@ public class XMLLanguageDriver implements LanguageDriver {
 
   @Override
   public ParameterHandler createParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
-    //使用默认的参数出来
+    //使用默认的参数处理器
     return new DefaultParameterHandler(mappedStatement, parameterObject, boundSql);
   }
 

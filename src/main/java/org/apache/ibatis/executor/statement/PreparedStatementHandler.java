@@ -73,6 +73,7 @@ public class PreparedStatementHandler extends BaseStatementHandler {
   }
 
   @Override
+  //初始化statement
   protected Statement instantiateStatement(Connection connection) throws SQLException {
     String sql = boundSql.getSql();
     if (mappedStatement.getKeyGenerator() instanceof Jdbc3KeyGenerator) {
@@ -90,6 +91,7 @@ public class PreparedStatementHandler extends BaseStatementHandler {
   }
 
   @Override
+  //设置参数, 也就是SQL上的占位符
   public void parameterize(Statement statement) throws SQLException {
     parameterHandler.setParameters((PreparedStatement) statement);
   }

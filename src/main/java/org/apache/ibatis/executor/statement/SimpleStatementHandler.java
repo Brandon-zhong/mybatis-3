@@ -72,6 +72,7 @@ public class SimpleStatementHandler extends BaseStatementHandler {
   public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
     String sql = boundSql.getSql();
     statement.execute(sql);
+    //执行查询，然后将结果接传入结果处理器
     return resultSetHandler.handleResultSets(statement);
   }
 
@@ -84,6 +85,7 @@ public class SimpleStatementHandler extends BaseStatementHandler {
 
   @Override
   protected Statement instantiateStatement(Connection connection) throws SQLException {
+    //创建普通的statement
     if (mappedStatement.getResultSetType() == ResultSetType.DEFAULT) {
       return connection.createStatement();
     } else {
@@ -92,6 +94,7 @@ public class SimpleStatementHandler extends BaseStatementHandler {
   }
 
   @Override
+  //简单statement是直接将参数拼接到SQL中，不用进行参数设置，有SQL注入风险
   public void parameterize(Statement statement) {
     // N/A
   }
