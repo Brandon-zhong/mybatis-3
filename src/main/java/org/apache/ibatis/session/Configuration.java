@@ -572,6 +572,7 @@ public class Configuration {
       ResultHandler resultHandler, BoundSql boundSql) {
     //默认的结果集处理器
     ResultSetHandler resultSetHandler = new DefaultResultSetHandler(executor, mappedStatement, parameterHandler, resultHandler, boundSql, rowBounds);
+    //插件相关
     resultSetHandler = (ResultSetHandler) interceptorChain.pluginAll(resultSetHandler);
     return resultSetHandler;
   }

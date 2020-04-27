@@ -126,4 +126,9 @@ public class WeakCache implements Cache {
     }
   }
 
+  public static void main(String[] args) {
+
+
+  }
+
 }

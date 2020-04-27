@@ -75,6 +75,7 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
     return new SqlSessionManager(sqlSessionFactory);
   }
 
+  //开启一个可被管理的会话，就是开一个会话放到ThreadLocal中跟着线程走
   public void startManagedSession() {
     this.localSqlSession.set(openSession());
   }

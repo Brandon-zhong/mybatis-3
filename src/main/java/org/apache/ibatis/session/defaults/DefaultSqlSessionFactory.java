@@ -87,13 +87,18 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     return configuration;
   }
 
+  //从数据源开启一个SQL会话的连接
   private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
     Transaction tx = null;
     try {
       final Environment environment = configuration.getEnvironment();
+      //获取事务工厂
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
+      //创建一个事务
       tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+      //创建SQL执行器
       final Executor executor = configuration.newExecutor(tx, execType);
+      //创建session对象
       return new DefaultSqlSession(configuration, executor, autoCommit);
     } catch (Exception e) {
       closeTransaction(tx); // may have fetched a connection so lets call close()
@@ -103,6 +108,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     }
   }
 
+  //从以有的连接中开启会话
   private SqlSession openSessionFromConnection(ExecutorType execType, Connection connection) {
     try {
       boolean autoCommit;
@@ -125,6 +131,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     }
   }
 
+  //获取事务工厂
   private TransactionFactory getTransactionFactoryFromEnvironment(Environment environment) {
     if (environment == null || environment.getTransactionFactory() == null) {
       return new ManagedTransactionFactory();
@@ -132,6 +139,8 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     return environment.getTransactionFactory();
   }
 
+
+  //关闭事务
   private void closeTransaction(Transaction tx) {
     if (tx != null) {
       try {
